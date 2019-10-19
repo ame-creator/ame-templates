@@ -3,6 +3,8 @@ const VueSSRClientPlugin = require('vue-server-renderer/client-plugin')
 const nodeExternals = require('webpack-node-externals')
 const merge = require('lodash.merge')
 const TerserPlugin = require('terser-webpack-plugin')
+const path = require('path')
+const AmePlugin = require('./plugin/index')
 
 const TARGET_NODE = process.env.WEBPACK_TARGET === 'node'
 
@@ -12,7 +14,7 @@ const clientConfig = {
   },
   target: 'web',
   node: false,
-  plugins: [new VueSSRClientPlugin()],
+  plugins: [new VueSSRClientPlugin(), new AmePlugin()],
   optimization: {
     splitChunks: undefined
     // minimize: false
@@ -69,6 +71,12 @@ module.exports = {
           optimizeSSR: false
         })
       )
+
+    config.module
+      .rule('ts')
+      .use('ame')
+      .loader(path.join(__dirname, './loader/index.js'))
+      .before('babel-loader')
   },
   productionSourceMap: false
 }

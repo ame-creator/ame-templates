@@ -6,7 +6,10 @@ const components = [
   {
     name: 'title-2',
     version: '1.0.0',
-    componentName: 'Title2'
+    componentName: 'Title2',
+    options: {
+      title: '标题啊这是'
+    }
   }
 ]
 

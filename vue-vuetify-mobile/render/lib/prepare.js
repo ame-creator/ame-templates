@@ -13,6 +13,13 @@ class Prepare {
     this.componentsPath = componentsPath
     this.destPath = destPath
     this.publicPath = publicPath
+
+    this.appManifest = {
+      oldJs: '',
+      newJs: '',
+      oldCss: '',
+      newCss: ''
+    }
   }
 
   async createComponentJs ({
@@ -52,6 +59,63 @@ class Prepare {
     await fs.writeFile(destFilePath, outputContent)
   }
 
+  async customAppJs ({ webpackComponents, components, manifest }) {
+    const hashId = manifest.app.js.slice(0, 8)
+    const sourceFilePath = path.join(this.destPath, 'js', `app.${hashId}.js`)
+
+    const content = await fs.readFile(sourceFilePath, 'utf-8')
+
+    // 组件入口重写
+    let snippet1 = ''
+    let snippet2 = ''
+    let snippet3 = ''
+    webpackComponents.map(item => {
+      snippet1 += `"${item.moduleName}":"${item.moduleName}",`
+      snippet2 += `"${item.moduleName}":"${item.hashId}",`
+      snippet3 += `
+        ${item.componentName}: function ${item.componentName}() {
+          return __webpack_require__.e("${item.moduleName}").then(__webpack_require__.t.bind(null,"${item.moduleId}", 7));
+        },
+      `
+    })
+
+    // 组件列表重写
+    const componentsSnippet = `{
+      list:${JSON.stringify(components)},components:{${snippet3}}
+    }`
+
+    const outputContent = content
+      // .replace(/\"title-2\"\:\"title-2\"/, snippet1) // 组件入口替换
+      // .replace(/\"title-2\"\:\"[a-z0-9]{8}\"/, snippet2) // 组件入口替换
+      .replace(/"title-2":"title-2"/, snippet1) // 组件入口替换
+      .replace(/"title-2":"[a-z0-9]{8}"/, snippet2) // 组件入口替换
+      .replace('__AME_COMPONENTS__', componentsSnippet) // 组件列表替换
+      .replace('/ame-public-path/', this.publicPath) // publicPath替换
+
+    // app.js hashId更新
+    const newAppJs = `js/app.${makeWebpackHashId()}.js`
+    const newFilePath = path.join(this.destPath, newAppJs)
+    this.appManifest.oldJs = `js/app.${hashId}.js`
+    this.appManifest.newJs = newAppJs
+
+    // 新app.js写入
+    await fs.writeFile(newFilePath, outputContent)
+    // 旧app.js删除
+    await fs.remove(sourceFilePath)
+  }
+
+  async customHtml () {
+    const sourceFilePath = path.join(this.destPath, 'index.html')
+
+    const content = await fs.readFile(sourceFilePath, 'utf-8')
+
+    const regexp = new RegExp(this.appManifest.oldJs, 'g')
+
+    const outputContent = content.replace(regexp, this.appManifest.newJs)
+
+    await fs.writeFile(sourceFilePath, outputContent)
+  }
+
   async prepare () {
     await fs.emptyDir(this.destPath)
 
@@ -59,9 +123,9 @@ class Prepare {
 
     const uniqueComponents = _.uniqBy(this.components, 'name')
 
-    const manifest = {
-      vue: '2b0e'
-    }
+    const manifest = await fs.readJson(
+      path.join(originDistPath, 'manifest.json')
+    )
 
     const webpackComponents = uniqueComponents.map(item => {
       return {
@@ -86,6 +150,14 @@ class Prepare {
         })
       })
     )
+
+    await this.customAppJs({
+      webpackComponents,
+      components: this.components,
+      manifest
+    })
+
+    await this.customHtml()
   }
 }
 

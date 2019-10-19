@@ -17,7 +17,12 @@ import { Component, Vue } from 'vue-property-decorator'
 import components from './components'
 
 @Component({
-  components: components.components
+  components: Object.assign(
+    {
+      Title2: () => import(/* webpackChunkName: 'title-2' */ '@ac-vue/title-2')
+    },
+    components.components
+  )
 })
 export default class Page extends Vue {
   components = components.list
