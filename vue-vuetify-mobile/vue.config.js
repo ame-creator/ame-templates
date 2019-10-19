@@ -15,6 +15,7 @@ const clientConfig = {
   plugins: [new VueSSRClientPlugin()],
   optimization: {
     splitChunks: undefined
+    // minimize: false
   }
 }
 
