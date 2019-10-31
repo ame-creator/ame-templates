@@ -104,14 +104,51 @@ class Prepare {
     await fs.remove(sourceFilePath)
   }
 
+  async customAppCss ({ webpackComponents, manifest }) {
+    const hashId = manifest.app.css.slice(0, 8)
+    const sourceFilePath = path.join(this.destPath, 'css', `app.${hashId}.css`)
+
+    let content = await fs.readFile(sourceFilePath, 'utf-8')
+
+    await Promise.all(
+      webpackComponents.map(async item => {
+        const { moduleVersion, moduleName } = item
+
+        const moduleSourceFilePath = path.join(
+          this.componentsPath,
+          moduleName,
+          // moduleVersion,
+          'dist/index.css'
+        )
+
+        const moduleContent = await fs.readFile(moduleSourceFilePath, 'utf-8')
+        content += `${moduleContent}\n`
+      })
+    )
+
+    // app.css hashId更新
+    const newAppCss = `css/app.${makeWebpackHashId()}.css`
+    const newFilePath = path.join(this.destPath, newAppCss)
+    this.appManifest.oldCss = `css/app.${hashId}.css`
+    this.appManifest.newCss = newAppCss
+
+    // 新app.css写入
+    await fs.writeFile(newFilePath, content)
+    // 旧app.css删除
+    await fs.remove(sourceFilePath)
+  }
+
   async customHtml () {
     const sourceFilePath = path.join(this.destPath, 'index.html')
 
     const content = await fs.readFile(sourceFilePath, 'utf-8')
 
-    const regexp = new RegExp(this.appManifest.oldJs, 'g')
+    const jsRegexp = new RegExp(this.appManifest.oldJs, 'g')
+    const cssRegexp = new RegExp(this.appManifest.oldCss, 'g')
 
-    const outputContent = content.replace(regexp, this.appManifest.newJs)
+    const outputContent = content
+      .replace(jsRegexp, this.appManifest.newJs)
+      .replace(cssRegexp, this.appManifest.newCss)
 
     await fs.writeFile(sourceFilePath, outputContent)
   }
@@ -154,6 +191,11 @@ class Prepare {
     await this.customAppJs({
       webpackComponents,
       components: this.components,
+      manifest
+    })
+
+    await this.customAppCss({
+      webpackComponents,
       manifest
     })
 

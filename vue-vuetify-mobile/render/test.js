@@ -10,6 +10,23 @@ const components = [
     options: {
       title: '标题啊这是'
     }
+  },
+  {
+    name: 'detail-1',
+    version: '1.0.0',
+    componentName: 'Detail1',
+    options: {
+      title: '首席首席首席',
+      tags: [
+        {
+          title: '哈哈',
+          color: '#ea3bc2'
+        },
+        {
+          title: '是么'
+        }
+      ]
+    }
   }
 ]
 
