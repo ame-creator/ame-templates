@@ -43,6 +43,7 @@ const serverConfig = {
 }
 
 module.exports = {
+  publicPath: '/ame-public-path/',
   css: {
     extract: process.env.NODE_ENV === 'production'
   },

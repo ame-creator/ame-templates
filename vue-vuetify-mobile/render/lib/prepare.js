@@ -149,6 +149,7 @@ class Prepare {
     const outputContent = content
       .replace(jsRegexp, this.appManifest.newJs)
       .replace(cssRegexp, this.appManifest.newCss)
+      .replace(/\/ame-public-path\//g, this.publicPath) // publicPath替换
 
     await fs.writeFile(sourceFilePath, outputContent)
   }
