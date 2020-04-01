@@ -33,7 +33,7 @@ class Prepare {
       this.componentsPath,
       moduleName,
       // moduleVersion,
-      'dist/index.umd.min.js'
+      'index.umd.min.js'
     )
 
     let content = await fs.readFile(sourceFilePath, 'utf-8')
@@ -118,7 +118,7 @@ class Prepare {
           this.componentsPath,
           moduleName,
           // moduleVersion,
-          'dist/index.css'
+          'index.css'
         )
 
         const moduleContent = await fs.readFile(moduleSourceFilePath, 'utf-8')
