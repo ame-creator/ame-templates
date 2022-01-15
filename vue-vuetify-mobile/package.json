@@ -42,7 +42,7 @@
     "prettier": "^1.18.2",
     "sass": "^1.21.0",
     "sass-loader": "^7.1.0",
-    "shelljs": "^0.8.3",
+    "shelljs": "^0.8.5",
     "ts-jest": "^23.0.0",
     "typescript": "^3.4.3",
     "vue-server-renderer": "^2.6.10",
